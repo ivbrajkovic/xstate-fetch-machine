@@ -63,15 +63,22 @@ export interface Picture {
   thumbnail: string;
 }
 
-export type UserMachineContext = {
-  input: string;
+export type UserFilters = {
+  gender: "male" | "female" | "all";
+  name: string;
+};
+
+export type UserMachineContext<T> = {
+  filters: UserFilters;
   error: string;
   users: User[];
+  // fetchMachine: ActorRef<FetchMachineEvents<T>, any> | null;
 };
 
 export type UserMachineEvent =
   | { type: "FETCH" }
-  | { type: "FILTER"; value: string }
+  | { type: "CHANGE"; data: Partial<UserFilters> }
+  | { type: "UPDATE_GENDER"; value: "male" | "female" | "all" }
   | {
       type: "error.platform.fetchUsers";
       data: string;

@@ -1,18 +1,15 @@
 import { CardList } from "components/CardList";
 import { InputFilter } from "components/InputFilter";
 import { UserMachineProvider } from "context/userMachineContext";
+import { Layout } from "layout";
 
-const App = () => {
-  return (
-    <UserMachineProvider>
-      <div className="flex justify-center pt-20">
-        <div className="min-w-[50%]">
-          <InputFilter />
-          <CardList />
-        </div>
-      </div>
-    </UserMachineProvider>
-  );
-};
+const App = () => (
+  <UserMachineProvider>
+    <Layout>
+      <InputFilter />
+      <CardList />
+    </Layout>
+  </UserMachineProvider>
+);
 
 export default App;

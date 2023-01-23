@@ -1,11 +1,11 @@
 import { useUserMachineContext } from "context/userMachineContext";
 
 const InputFilter = () => {
-  const userContext = useUserMachineContext();
-  const { send } = userContext;
+  const ctx = useUserMachineContext();
+  console.log("InputFilter:ctx", ctx);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    send({ type: "FILTER", value: e.target.value });
+    ctx.send({ type: "CHANGE", data: { name: e.target.value } });
 
   return (
     <div className="p-5 mb-6 rounded-md shadow-lg bg-white">

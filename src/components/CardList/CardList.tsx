@@ -1,12 +1,14 @@
 import Card from "components/Card/Card";
-import useMachineUsers from "hooks/useMachineUsers";
+import { useUserMachineUsers } from "hooks/useMachineUsers";
+
+const NoUsersFound = () => (
+  <div className="p-10 text-center font-medium text-xl">No users found</div>
+);
 
 const CardList = () => {
-  const users = useMachineUsers();
-  if (users.length === 0)
-    return (
-      <div className="p-10 text-center font-medium text-xl">No users found</div>
-    );
+  const users = useUserMachineUsers();
+
+  if (!users.length) return <NoUsersFound />;
   return (
     <ul className="flex flex-col gap-5">
       {users.map((user) => (

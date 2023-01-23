@@ -1,18 +1,29 @@
-import { results as users } from "data/users.json";
-import { curry, filter } from "ramda";
-import { User } from "types";
+import { allPass, curry, filter } from "ramda";
+import { User, UserFilters } from "types";
+import { results as users } from "../data/users.json";
 
 const FETCH_TIME = 500;
 
-export const usernameIncludesChars = curry((chars: string, user: User) =>
-  user.name.first.includes(chars),
+const filterByName = curry((name: string, user: User) =>
+  user.name.first.toLocaleLowerCase().includes(name.toLocaleLowerCase()),
 );
 
-export const fetchUsers = (input: string): Promise<User[]> =>
+const filterByGender = curry((gender: string, user: User) =>
+  gender === "all" ? true : gender !== user.gender,
+);
+
+let timer: number | undefined;
+
+export const fetchUsers = (filters: UserFilters): Promise<User[]> =>
   new Promise((resolve) => {
-    setTimeout(() => {
-      const filterUserPredicate = usernameIncludesChars(input);
-      const filteredUsers = filter(filterUserPredicate, users);
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => {
+      const userFilter = allPass([
+        filterByGender(filters.gender),
+        filterByName(filters.name),
+      ]);
+      const filteredUsers = filter(userFilter, users);
       resolve(filteredUsers);
+      timer = undefined;
     }, FETCH_TIME);
   });
