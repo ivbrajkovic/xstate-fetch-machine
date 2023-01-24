@@ -76,9 +76,9 @@ export type UserMachineContext<T> = {
 };
 
 export type UserMachineEvent =
-  | { type: "FETCH" }
-  | { type: "CHANGE"; data: Partial<UserFilters> }
-  | { type: "UPDATE_GENDER"; value: "male" | "female" | "all" }
+  | { type: "FETCH_USERS" }
+  | { type: "CHANGE_NAME"; data: Partial<UserFilters> }
+  | { type: "CHANGE_GENDER"; data: Partial<UserFilters> }
   | {
       type: "error.platform.fetchUsers";
       data: string;

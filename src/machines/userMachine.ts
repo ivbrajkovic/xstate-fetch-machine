@@ -1,14 +1,13 @@
 import { fetchUsers } from "services/fetchUsers";
 import { User, UserMachineContext, UserMachineEvent } from "types";
 import { actions, assign, createMachine } from "xstate";
-import { results as users } from "../data/users.json";
 
 const { cancel, send } = actions;
 
-const DEBOUNCE_TIMEOUT = 200;
+const DEBOUNCE_TIMEOUT = 250;
 
 export const userMachine =
-  /** @xstate-layout N4IgpgJg5mDOIC5QFdZgE4FkCGBjAFgJYB2YAdAGYD26AtmYRADZgDEAwgBICCAcgOIBRANoAGALqJQAByqxCAF0JViUkAA9EAdgBMAGhABPRAEYArCbKjro8wE47AFjsBmAByizAXy8HUGHAIScmxpQnYmQjBiBVYAMUEAFS4xSSQQWXklFTVNBF0DYwQzWzIANlFXMrc3LTMdRx0Xb18Qfyw8IlIyUPDI6IUyJipsCBIoVggVchIANyoAa3IKMAUCAFU0dFhUtUzFZVV0vMcylzItMrMy3VEtEy1HGsdCxCe3MjczVzM3FxvRDUXD4-FtAl0QmEIlEYkMRmNiBMMOgaGRpExsApqHRKKsNlsdhI9nIDjljm8zhcrjcdHcHu8XkZEN9HGRmlU7N8zGZGo4fK1iFQIHA1O1wcFiVlDrlEABaBqvBDy84OVVqtVuMogtpgzrBSg0WiS0lHUB5BVMhCU5yqrR2-5mFyOFqggJ67rY+iMFjG7KmjSmEx2C5uOyiM4VDwuJomRUucNslmieM6JzVZrasXuyF9GEKX3S8kIC1FFyXT7fdyhx06MquYGtLNBbq9aEDBjMMAFslmxBuVl3ZP-f7We5OxXXHRkEyVMu2J2XaqZ3XNnNt2HDUbjbv+vImfvlRzhrRl5rRnmMoqOLQfCqufsudxHzUN10dVc9KH9WGwZC4XBwPA6T7H6MpWkeZC-N8Hh3CU9qKqcrLsu4dg6G4aGXFoy5uh+rbfoMFDYIQTDIOgXbASSoFFmUEFQXYMF1HcJ4TnWFY-HYZQmBU1R8vyQA */
+  /** @xstate-layout N4IgpgJg5mDOIC5QFdZgE4FkCGBjAFgJYB2YAdAGYD26AtmYRADZgDEAwgBICCAcgOIBRAPq9umQQG0ADAF1EoAA5VYhAC6EqxBSAAeiAGwBWaWQAsAJgsAOAMwBOOwfsAaEAE9EtgIynf3i3sHG0DvIwBfcLdUDBwCEnJqOgZmNi4+IWEhXgARQQAlGXkkEGVVDS0dfQRrCzJvb2t7M2sDaWcGgHYDN08EC1trMjbOizNO6zN7b1tpCwNI6LQsPCJSMmxFQnYmQjBiNVYAMUEAFS5hAFUAZQLrop0y9U1tEurR3sNO007bWzHWr8jK0LIsQDEVvF1pttrt9moyEwqNgICQoKwIFpyCQAG5UADWiTAagIl2WsAeJSeFVeoGqRm89jI0wM1l8FiMRgMliMnwQxk6zOsRgBFm6bQ5YIhcTW5BhOz2B0RyNRxHRGHQNDIiiY2DUSXoFGJpPJlKUKmelTeiAZTJZbLmnO5HL53Vs5jMxkaZjMtk6Rl9kSiIGIVAgcB00tWCUeFppVUQAFoxnzvAZhs5RkFWgZGtJflLljKEpQaLRY+UXgmELYzPVGs1Wu1pt5uqnpHXvC17NJGWmDJ17EPC7Fo+sDSkWBXLbS9IhLILPWErAPBpZxny-XU1x37CZHN09yPIbKNlsFfDp-Hrf0zHyA+npO12hzd6yzMfi9Dz3ClYwp1ScZVje1iCrYRidIy7RhJBkwWK6vxkD44EDgyvodqCwZRlCco-oqCJIiiaJXsBdKIGMPyDpMZhdr2Fhpp0fLcoKoyga04wGH8-yfmOuGwvhZCwMguC4HA8CAZWVpkfy9jpgOYpBAMYxBK4HiGH85jCgMJjgdIswflhRa8We-HwpQ2CEEwyDoGAJFSXOMlyaMg7-P8UwOK6gzMp6Aa2KyNjjEG4RAA */
   createMachine(
     {
       tsTypes: {} as import("./userMachine.typegen").Typegen0,
@@ -27,19 +26,25 @@ export const userMachine =
           name: "",
         },
         error: "",
-        users: users,
+        users: [],
       },
 
       states: {
         // user filters
         form: {
+          entry: "fetchUsers",
           initial: "idle",
           states: {
             idle: {
               on: {
-                CHANGE: {
-                  actions: ["assignFilters", "cancelFetchUsers", "fetchUsers"],
+                CHANGE_NAME: {
+                  actions: [
+                    "assignFilters",
+                    "cancelFetchDebounced",
+                    "startFetchDebounced",
+                  ],
                 },
+                CHANGE_GENDER: { actions: ["assignFilters", "fetchUsers"] },
               },
             },
           },
@@ -49,7 +54,7 @@ export const userMachine =
         apiClient: {
           id: "apiClient",
           initial: "idle",
-          on: { FETCH: { target: ".loading" } },
+          on: { FETCH_USERS: { target: ".loading" } },
           states: {
             idle: {},
             loading: {
@@ -67,8 +72,9 @@ export const userMachine =
       },
     },
     {
-      services: { fetchUsers: (ctx, e) => fetchUsers(ctx.filters) },
-
+      services: {
+        fetchUsers: (ctx, _e) => fetchUsers(ctx.filters),
+      },
       actions: {
         // context
         assignFilters: assign((ctx, e) => ({
@@ -78,9 +84,10 @@ export const userMachine =
         setData: assign((_ctx, e) => ({ users: e.data, error: "" })),
 
         // fetch
-        cancelFetchUsers: cancel("debounced-fetch"),
-        fetchUsers: send("FETCH", {
-          id: "debounced-fetch",
+        fetchUsers: send("FETCH_USERS"),
+        cancelFetchDebounced: cancel("fetchDebounceTimer"),
+        startFetchDebounced: send("FETCH_USERS", {
+          id: "fetchDebounceTimer",
           delay: DEBOUNCE_TIMEOUT,
         }),
       },

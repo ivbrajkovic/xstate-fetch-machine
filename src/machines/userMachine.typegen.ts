@@ -24,16 +24,17 @@ export interface Typegen0 {
     services: never;
   };
   eventsCausingActions: {
-    assignFilters: "CHANGE";
-    cancelFetchUsers: "CHANGE";
-    fetchUsers: "CHANGE";
+    assignFilters: "CHANGE_GENDER" | "CHANGE_NAME";
+    cancelFetchDebounced: "CHANGE_NAME";
+    fetchUsers: "CHANGE_GENDER" | "xstate.init";
     setData: "done.invoke.fetchUsers";
     setError: "error.platform.fetchUsers";
+    startFetchDebounced: "CHANGE_NAME";
   };
   eventsCausingDelays: {};
   eventsCausingGuards: {};
   eventsCausingServices: {
-    fetchUsers: "FETCH";
+    fetchUsers: "FETCH_USERS";
   };
   matchesStates:
     | "apiClient"

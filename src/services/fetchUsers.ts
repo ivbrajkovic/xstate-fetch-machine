@@ -1,29 +1,15 @@
-import { allPass, curry, filter } from "ramda";
+import { curry, filter } from "ramda";
 import { User, UserFilters } from "types";
-import { results as users } from "../data/users.json";
-
-const FETCH_TIME = 500;
 
 const filterByName = curry((name: string, user: User) =>
   user.name.first.toLocaleLowerCase().includes(name.toLocaleLowerCase()),
 );
 
-const filterByGender = curry((gender: string, user: User) =>
-  gender === "all" ? true : gender !== user.gender,
-);
+// TODO: add cancelation
 
-let timer: number | undefined;
-
-export const fetchUsers = (filters: UserFilters): Promise<User[]> =>
-  new Promise((resolve) => {
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(() => {
-      const userFilter = allPass([
-        filterByGender(filters.gender),
-        filterByName(filters.name),
-      ]);
-      const filteredUsers = filter(userFilter, users);
-      resolve(filteredUsers);
-      timer = undefined;
-    }, FETCH_TIME);
-  });
+export const fetchUsers = async (filters: UserFilters): Promise<User[]> => {
+  const url = `https://randomuser.me/api/?results=10&noinfo&&gender=${filters.gender}`;
+  const response = await fetch(url);
+  const { results: users } = await response.json();
+  return filter(filterByName(filters.name), users);
+};

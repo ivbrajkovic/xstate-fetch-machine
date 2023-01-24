@@ -2,34 +2,19 @@
 
 import { useInterpret } from "@xstate/react";
 import { UserMachine, userMachine } from "machines/userMachine";
-import {
-  createContext,
-  FC,
-  ReactElement,
-  useContext as useReactContext,
-} from "react";
+import { createContext, FC, ReactElement } from "react";
 
 import { InterpreterFrom } from "xstate";
 
-export const userStateContext =
+export const userMachineContext =
   createContext<InterpreterFrom<UserMachine> | null>(null);
-userStateContext.displayName = userMachine.id;
+userMachineContext.displayName = userMachine.id;
 
 export const UserMachineProvider: FC<{ children: ReactElement }> = (props) => {
-  const userService = useInterpret(userMachine);
+  const userService = useInterpret(userMachine, { devTools: true });
   return (
-    <userStateContext.Provider value={userService}>
+    <userMachineContext.Provider value={userService}>
       {props.children}
-    </userStateContext.Provider>
+    </userMachineContext.Provider>
   );
-};
-
-export const useUserMachineContext = () => {
-  const context = useReactContext(userStateContext);
-  if (!context) {
-    throw new Error(
-      `use${userMachine.id}Context must be used inside ${userMachine.id}Provider`,
-    );
-  }
-  return context;
 };
